@@ -259,6 +259,10 @@ while True:
                 computer_message = f"Invalid Remove - {command} : Invalid Number of arguments - {len(prompt)}"
                 logging.error(computer_message)
                 continue
+            if prompt[1] not in main_board.keys():
+                computer_message = f"Invalid Move - {command} : No Pieces at Position - {prompt[1]}"
+                logging.warning(computer_message)
+                continue
             del main_board[prompt[1]]
         case "set":
             if len(prompt) != 3:
