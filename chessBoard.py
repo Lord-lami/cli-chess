@@ -1,4 +1,5 @@
 import copy, sys, logging
+from timer import timed_input
 
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s -  %(levelname)s -  %(message)s')
 logging.disable(logging.CRITICAL)
@@ -218,7 +219,9 @@ while True:
     if computer_message:
         print("Computer:", computer_message)
         computer_message = ""
-    command = input("> ")
+    command = timed_input(10, "> ")
+    if not command:
+        continue
     prompt = command.split()
     match prompt[0]:
         case "move":
