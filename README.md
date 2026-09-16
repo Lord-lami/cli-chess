@@ -24,9 +24,10 @@ python3 chessBoard.py
 - Messaging
 
 ## Future Features
+- Timer
 - Game Saving
 - Chess Rules Validation
-- Computer Opponent
-- Multiplayer
+- PvP
+- PvE
 - Tournaments
 - and many more
