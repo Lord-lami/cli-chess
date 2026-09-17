@@ -13,7 +13,7 @@ parser.add_argument(
 )
 
 parser.add_argument(
-    "-d", "--duration",
+    "-t", "--turn-duration",
     type=int,
     default=0,
     help="The turn duration in seconds. A value less than 1 will result in no time limit (default: 0)."
@@ -301,7 +301,7 @@ player_message = ""
 computer_message = ""
 current_player = "White"
 next_player = "Black"
-remaining_time = ARGS.duration
+remaining_time = ARGS.turn_duration
 
 print('Interactive Chessboard')
 print('by Olamide Ifarajimi')
@@ -317,13 +317,13 @@ while True:
         print("Computer:", computer_message)
         computer_message = ""
 
-    if ARGS.duration < 1:
+    if ARGS.turn_duration < 1:
         command = input(current_player+"> ")
     else:
         command, remaining_time = timer_timed_input(remaining_time, "-"+current_player+"> ")
     
     if remaining_time == 0:
-        remaining_time = ARGS.duration
+        remaining_time = ARGS.turn_duration
 
     if not command:
         computer_message = f"No Command Given"
