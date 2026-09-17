@@ -3,17 +3,20 @@ from prompt_toolkit.patch_stdout import patch_stdout
 import time
 import threading
 import asyncio
+import queue
 
 
-def timer(duration: int, stop_timer: threading.Event) -> None:
+def timer(duration: int, stop_timer: threading.Event, remaining_time: queue.Queue) -> None:
     # stop_timer.clear()
     for sec in range(duration, 0, -1):
         if stop_timer.is_set():
+            remaining_time.put(sec)
             return
         print(sec, end="", flush=True)
         time.sleep(1)
         print("\r", end="", flush=True)
     print(0, end="", flush=True)
+    remaining_time.put(0)
 
 
 
@@ -29,17 +32,17 @@ async def timed_input(duration: int, prompt: str) -> str | None:
         return None
 
 
-def timer_timed_input(duration: int, prompt: str) -> str:
+def timer_timed_input(duration: int, prompt: str) -> tuple[str, int]:
     stop_timer = threading.Event()
-    session = PromptSession()
+    remaining_time = queue.Queue()
     with patch_stdout():
-        thread = threading.Thread(target=timer, args=(duration, stop_timer))
+        thread = threading.Thread(target=timer, args=(duration, stop_timer, remaining_time))
         thread.start()
         command = asyncio.run(timed_input(duration, prompt))
 
     stop_timer.set()
     thread.join()
-    return command
+    return command, remaining_time.get()
 
 # print(f"You entered: {name}")
 

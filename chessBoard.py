@@ -1,8 +1,30 @@
-import copy, sys, logging
+import copy, sys, logging, argparse
 from timer import timer_timed_input
 
-logging.basicConfig(level=logging.DEBUG, format='%(asctime)s -  %(levelname)s -  %(message)s')
-logging.disable(logging.CRITICAL)
+parser = argparse.ArgumentParser(
+    description="CLI Chess: Make you boring CLI more fun",
+    epilog="Example: python chessBoard.py"
+)
+parser.add_argument(
+    "-l", "--log-level",
+    choices=["NONE", "DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
+    default="NONE",
+    help="Minimum log level to display (default: NONE)"
+)
+
+parser.add_argument(
+    "-d", "--duration",
+    type=int,
+    default=0,
+    help="The duration in seconds for each player's round. A value less than 1 will result in no time limit (default: 0)."
+)
+
+ARGS = parser.parse_args()
+if ARGS.log_level != "NONE":
+    levels = logging.getLevelNamesMapping()
+    logging.basicConfig(level=levels[ARGS.log_level], format='%(asctime)s -  %(levelname)s -  %(message)s')
+else:
+    logging.disable()
 
 starting_board = {}
 ROWS = "87654321"
@@ -141,7 +163,7 @@ def is_valid_chess_board(board: dict[str, str]) -> bool:
         logging.info(f"Invalid Chess Board: Too Many Black Pieces - {total_black_piece_count}")
         return False
 
-    logging.debug("The Chess Board is Valid")
+    logging.info("The Chess Board is Valid")
     return True
 
 WHITE_SQUARE = '||'
@@ -273,29 +295,39 @@ Commands:
   quit - Quits the program.
 '''
 
-print('Interactive Chessboard')
-print('by Olamide Ifarajimi')
-
 main_board = copy.copy(STARTING_BOARD)
 player_message = ""
 computer_message = ""
-duration = 30
-remaining_time = duration
+
+remaining_time = ARGS.duration
+
+print('Interactive Chessboard')
+print('by Olamide Ifarajimi')
 
 while True:
     print(instructions)
     print_chess_board(main_board)
+
     if player_message:
         print("Player:", player_message)
         player_message = ""
     if computer_message:
         print("Computer:", computer_message)
         computer_message = ""
-    command = timer_timed_input(remaining_time, "> ")
+
+    if ARGS.duration < 1:
+        command = input("> ")
+    else:
+        command, remaining_time = timer_timed_input(remaining_time, "> ")
+    
+    if remaining_time == 0:
+        remaining_time = ARGS.duration
+
     if not command:
         computer_message = f"No Command Given"
         logging.error(computer_message)
         continue
+
     prompt = command.split()
     match prompt[0]:
         case "move":
