@@ -2,6 +2,7 @@ from prompt_toolkit import PromptSession
 from prompt_toolkit.patch_stdout import patch_stdout
 import time
 import threading
+import asyncio
 
 
 def timer(duration: int, stop_timer: threading.Event) -> None:
@@ -14,13 +15,28 @@ def timer(duration: int, stop_timer: threading.Event) -> None:
         print("\r", end="", flush=True)
     print(0, end="", flush=True)
 
-def timed_input(duration: int, prompt: str) -> str:
+
+
+async def timed_input(duration: int, prompt: str) -> str | None:
+    session = PromptSession()
+
+    try:
+        return await asyncio.wait_for(
+            session.prompt_async(prompt),
+            timeout=duration
+        )
+    except asyncio.TimeoutError:
+        return None
+
+
+def timer_timed_input(duration: int, prompt: str) -> str:
     stop_timer = threading.Event()
     session = PromptSession()
     with patch_stdout():
         thread = threading.Thread(target=timer, args=(duration, stop_timer))
         thread.start()
-        command = session.prompt(prompt)
+        command = asyncio.run(timed_input(duration, prompt))
+
     stop_timer.set()
     thread.join()
     return command
