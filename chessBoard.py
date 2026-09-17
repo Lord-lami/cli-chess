@@ -323,7 +323,12 @@ while True:
         command, remaining_time = timer_timed_input(remaining_time, "-"+current_player+"> ")
     
     if remaining_time == 0:
+        computer_message = f"Turn Expired"
+        logging.error(computer_message)
+        # The next code line should be replaced with losing logic 
+        # for the current player when implementing chess rules
         remaining_time = ARGS.turn_duration
+        continue
 
     if not command:
         computer_message = f"No Command Given"
