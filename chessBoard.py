@@ -1,7 +1,30 @@
-import copy, sys, logging
+import copy, sys, logging, argparse
+from timer import timer_timed_input
 
-logging.basicConfig(level=logging.DEBUG, format='%(asctime)s -  %(levelname)s -  %(message)s')
-logging.disable(logging.CRITICAL)
+parser = argparse.ArgumentParser(
+    description="CLI Chess: Make you boring CLI more fun",
+    epilog="Example: python chessBoard.py"
+)
+parser.add_argument(
+    "-l", "--log-level",
+    choices=["NONE", "DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
+    default="NONE",
+    help="Minimum log level to display (default: NONE)"
+)
+
+parser.add_argument(
+    "-t", "--turn-duration",
+    type=int,
+    default=0,
+    help="The turn duration in seconds. A value less than 1 will result in no time limit (default: 0)."
+)
+
+ARGS = parser.parse_args()
+if ARGS.log_level != "NONE":
+    levels = logging.getLevelNamesMapping()
+    logging.basicConfig(level=levels[ARGS.log_level], format='%(asctime)s -  %(levelname)s -  %(message)s')
+else:
+    logging.disable()
 
 starting_board = {}
 ROWS = "87654321"
@@ -99,18 +122,18 @@ BOARD_TEMPLATE = """
 # is_valid_chess_board takes a board (a dict[position] = pieces) and 
 # returns True if it is a valid chess board and False if it isn't
 # An invalid board has:
-# 1. Pieces that are outside of the valid pieces: {'wP', 'wN', 'bK', 'bP', 'wR', 'bR', 'wK', 'wQ', 'bN', 'bB', 'bQ', 'wB'}
+# 1. Pieces that are outside of the VALID_PIECES
 # 2. More than 16 White pieces or Black pieces
 # 3. More than 8 White Pawns
 # 4. More than 1 White King or Black King
+VALID_PIECES = {'wP', 'wR', 'wN', 'wB', 'wQ', 'wK', 'bP', 'bR', 'bN', 'bB', 'bQ', 'bK'}
 def is_valid_chess_board(board: dict[str, str]) -> bool:
-    valid_pieces = set(STARTING_BOARD.values())
     white_piece_count = {"P": 0, "R": 0, "N": 0, "B": 0, "Q": 0, "K": 0}
     black_piece_count = {"P": 0, "R": 0, "N": 0, "B": 0, "Q": 0, "K": 0}
     total_white_piece_count = 0
     total_black_piece_count = 0
     for _, piece in board.items():
-        if piece not in valid_pieces:
+        if piece not in VALID_PIECES:
             logging.info("Invalid Chess Board: Invalid Piece - "+ piece)
             return False
         
@@ -140,7 +163,7 @@ def is_valid_chess_board(board: dict[str, str]) -> bool:
         logging.info(f"Invalid Chess Board: Too Many Black Pieces - {total_black_piece_count}")
         return False
 
-    logging.debug("The Chess Board is Valid")
+    logging.info("The Chess Board is Valid")
     return True
 
 WHITE_SQUARE = '||'
@@ -175,7 +198,8 @@ def print_chess_board(board: dict[str, str]) -> None:
         current_ind = b_temp.find("{}", current_ind)
     print(b_temp)
 
-
+# is_valid_position returns True if the passed position can be found on a chessboard
+# and false otherwise
 def is_valid_position(position: str) -> bool:
     if len(position) != 2:
         return False
@@ -185,6 +209,76 @@ def is_valid_position(position: str) -> bool:
         return False
     
     return True
+
+# movePiece takes the piece at fromPos in the main_board and
+# puts it at toPos in the main_board.
+# It returns a computer message if:
+# 1. Any of the positions are not valid
+# 2. There is no piece at fromPos
+def movePiece(fromPos: str, toPos: str, command: str) -> str:
+
+    # Check that the postions are valid
+    if not is_valid_position(fromPos):
+        computer_message = f"Invalid Move - {command} : Invalid Position - {fromPos}"
+        logging.warning(computer_message)
+        return computer_message
+    if not is_valid_position(toPos):
+        computer_message = f"Invalid Move - {command} : Invalid Position - {toPos}"
+        logging.warning(computer_message)
+        return computer_message
+
+    logging.info("Positions are Valid")
+
+    # Check that the first postion has a piece on it
+    if fromPos not in main_board.keys():
+        computer_message = f"Invalid Move - {command} : No Pieces at Position - {fromPos}"
+        logging.warning(computer_message)
+        return computer_message
+
+    logging.info("The First Position has a Piece on it")
+
+    main_board[toPos] = main_board[fromPos]
+    del main_board[fromPos]
+
+
+# removePiece removes the piece at fromPos from the main_board
+# It returns a computer_message if:
+# 1. fromPos is not a valid chessboard position
+# 2. There is no piece at fromPos
+def removePiece(fromPos: str, command: str) -> str:
+
+    # Check that the postion is valid
+    if not is_valid_position(fromPos):
+        computer_message = f"Invalid Remove - {command} : Invalid Position - {fromPos}"
+        logging.warning(computer_message)
+        return computer_message
+
+    if fromPos not in main_board.keys():
+        computer_message = f"Invalid Remove - {command} : No Pieces at Position - {fromPos}"
+        logging.warning(computer_message)
+        return computer_message
+
+    del main_board[fromPos]
+
+# setPiece sets the piece toPiece on the position pos on the main_board
+# It returns a computer message if:
+# 1. The pos is not valid chessboard position
+# 2. toPiece is outside of the VALID_PIECES
+def setPiece(pos: str, toPiece: str, command: str) -> str:
+
+    # Check that the postion is valid
+    if not is_valid_position(pos):
+        computer_message = f"Invalid Set - {command} : Invalid Position - {pos}"
+        logging.warning(computer_message)
+        return computer_message
+
+    if toPiece not in VALID_PIECES:
+        computer_message = f"Invalid Set - {command} : Invalid Piece - {toPiece}"
+        logging.warning(computer_message)
+        return computer_message
+    
+    main_board[pos] = toPiece
+
 
 instructions = '''
 Pieces:
@@ -202,27 +296,49 @@ Commands:
   quit - Quits the program.
 '''
 
-print('Interactive Chessboard')
-print('by Olamide Ifarajimi')
-
 main_board = copy.copy(STARTING_BOARD)
 player_message = ""
 computer_message = ""
+current_player = "White"
+next_player = "Black"
+remaining_time = ARGS.turn_duration
+
+print('Interactive Chessboard')
+print('by Olamide Ifarajimi')
 
 while True:
     print(instructions)
     print_chess_board(main_board)
+
     if player_message:
-        print("Player:", player_message)
+        print(player_message)
         player_message = ""
     if computer_message:
         print("Computer:", computer_message)
         computer_message = ""
-    command = input("> ")
+
+    if ARGS.turn_duration < 1:
+        command = input(current_player+"> ")
+    else:
+        command, remaining_time = timer_timed_input(remaining_time, "-"+current_player+"> ")
+    
+    if remaining_time == 0:
+        computer_message = f"Turn Expired"
+        logging.error(computer_message)
+        # The next code line should be replaced with losing logic 
+        # for the current player when implementing chess rules
+        remaining_time = ARGS.turn_duration
+        continue
+
+    if not command:
+        computer_message = f"No Command Given"
+        logging.error(computer_message)
+        continue
+
     prompt = command.split()
     match prompt[0]:
         case "move":
-            # Raise Exception if there are less than 2 positions written after move
+            # Show an error message if there are less than 2 positions written after move
             if len(prompt) < 3:
                 computer_message = f"Invalid Move {command} : Missing Position argument(s)"
                 logging.error(computer_message)
@@ -232,66 +348,65 @@ while True:
             if len(prompt) > 3:
                 player_message = " ".join(prompt[3:])
                 logging.info("Received player message: " + player_message)
-            
-            # Check that the postions are valid
-            if not is_valid_position(prompt[1]):
-                computer_message = f"Invalid Move - {command} : Invalid Position - {prompt[1]}"
-                logging.warning(computer_message)
-                continue
-            if not is_valid_position(prompt[2]):
-                computer_message = f"Invalid Move - {command} : Invalid Position - {prompt[2]}"
-                logging.warning(computer_message)
-                continue
-            logging.info("Positions are Valid")
 
-            # Check that the postions have pieces on them
-            if prompt[1] not in main_board.keys():
-                computer_message = f"Invalid Move - {command} : No Pieces at Position - {prompt[1]}"
-                logging.warning(computer_message)
+            computer_message = movePiece(prompt[1], prompt[2], command)
+            if computer_message:
                 continue
-            logging.info("The First Position has a piece on it")
-
-            main_board[prompt[2]] = main_board[prompt[1]]
-            del main_board[prompt[1]]
 
         case "remove":
             if len(prompt) != 2:
                 computer_message = f"Invalid Remove - {command} : Invalid Number of arguments - {len(prompt)}"
                 logging.error(computer_message)
                 continue
-            if prompt[1] not in main_board.keys():
-                computer_message = f"Invalid Move - {command} : No Pieces at Position - {prompt[1]}"
-                logging.warning(computer_message)
+
+            computer_message = removePiece(prompt[1], command)
+            if computer_message:
                 continue
-            del main_board[prompt[1]]
+            
         case "set":
             if len(prompt) != 3:
                 computer_message = f"Invalid Set - {command} : Invalid Number of arguments - {len(prompt)}"
                 logging.error(computer_message)
                 continue
-            main_board[prompt[1]] = prompt[2]
+            computer_message = setPiece(prompt[1], prompt[2], command)
+            if computer_message:
+                continue
+            
+
         case "reset":
             if len(prompt) != 1:
                 computer_message = f"Invalid Reset - {command} : Invalid Number of arguments - {len(prompt)}"
                 logging.error(computer_message)
                 continue
+
             main_board = copy.copy(STARTING_BOARD)
+
         case "clear":
             if len(prompt) != 1:
                 computer_message = f"Invalid Clear - {command} : Invalid Number of arguments - {len(prompt)}"
                 logging.error(computer_message)
                 continue
+
             main_board = {}
+
         case "fill":
             if len(prompt) != 2:
                 computer_message = f"Invalid Fill - {command} : Invalid Number of arguments - {len(prompt)}"
                 logging.error(computer_message)
                 continue
+
             for row in ROWS:
                 for col in COLS:
                     main_board[col+row] = prompt[1]
+            
         case "quit":
             sys.exit()
+
         case _:
             computer_message = f"Invalid command - {prompt[0]}"
             logging.error(computer_message)
+            continue
+
+    player_message = current_player + ": " + player_message if player_message else ""
+    current_player, next_player = next_player, current_player
+    remaining_time = 30
