@@ -16,7 +16,7 @@ parser.add_argument(
     "-d", "--duration",
     type=int,
     default=0,
-    help="The duration in seconds for each player's round. A value less than 1 will result in no time limit (default: 0)."
+    help="The turn duration in seconds. A value less than 1 will result in no time limit (default: 0)."
 )
 
 ARGS = parser.parse_args()
@@ -198,7 +198,8 @@ def print_chess_board(board: dict[str, str]) -> None:
         current_ind = b_temp.find("{}", current_ind)
     print(b_temp)
 
-
+# is_valid_position returns True if the passed position can be found on a chessboard
+# and false otherwise
 def is_valid_position(position: str) -> bool:
     if len(position) != 2:
         return False
@@ -298,7 +299,8 @@ Commands:
 main_board = copy.copy(STARTING_BOARD)
 player_message = ""
 computer_message = ""
-
+current_player = "White"
+next_player = "Black"
 remaining_time = ARGS.duration
 
 print('Interactive Chessboard')
@@ -309,16 +311,16 @@ while True:
     print_chess_board(main_board)
 
     if player_message:
-        print("Player:", player_message)
+        print(player_message)
         player_message = ""
     if computer_message:
         print("Computer:", computer_message)
         computer_message = ""
 
     if ARGS.duration < 1:
-        command = input("> ")
+        command = input(current_player+"> ")
     else:
-        command, remaining_time = timer_timed_input(remaining_time, "> ")
+        command, remaining_time = timer_timed_input(remaining_time, "-"+current_player+"> ")
     
     if remaining_time == 0:
         remaining_time = ARGS.duration
@@ -398,3 +400,8 @@ while True:
         case _:
             computer_message = f"Invalid command - {prompt[0]}"
             logging.error(computer_message)
+            continue
+
+    player_message = current_player + ": " + player_message if player_message else ""
+    current_player, next_player = next_player, current_player
+    remaining_time = 30
