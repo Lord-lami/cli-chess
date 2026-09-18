@@ -22,9 +22,9 @@ python3 chessBoard.py
 - Board Clearing
 - Board Filling
 - Messaging
+- Timer
 
 ## Future Features
-- Timer
 - Game Saving
 - Chess Rules Validation
 - PvP
