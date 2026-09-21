@@ -322,7 +322,7 @@ while True:
     else:
         command, remaining_time = timer_timed_input(remaining_time, "-"+current_player+"> ")
     
-    if remaining_time == 0:
+    if ARGS.turn_duration > 0 and remaining_time == 0:
         computer_message = f"Turn Expired"
         logging.error(computer_message)
         # The next code line should be replaced with losing logic 
