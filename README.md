@@ -10,6 +10,15 @@ python3 --version
 ```bash
 python3 chessBoard.py
 ```
+3. To see logs:
+```bash
+python3 chessBoard.py -l WARNING
+```
+4. To use the timer:
+```bash
+python3 chessBoard.py -t 30
+```
+
 
 ## Current Features
 - Arbitrary Piece Movement
