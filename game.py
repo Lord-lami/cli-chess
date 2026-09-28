@@ -88,19 +88,20 @@ Commands:
   fill wP - Fills entire board with white pawns.
   pause - Pauses the game if pausing is not disabled.
   help - Displays this text.
-  quit - Quits the program.
+  quit [save filename] - Quits the program and saves to the loaded save file or autosave. You can optionally add a save filename if you want to save to different file.
 '''
-def new_game(turn_duration: int, noPause: bool) -> tuple[int, str, dict]:
+def lax_game(turn_duration: int, noPause: bool, remaining_time, current_player, board) -> tuple[str, int, str, dict]:
     global main_board
-    main_board = copy.copy(chessBoard.STARTING_BOARD)
+    main_board = board
     advice = "Use the 'help' command to view the instructions"
     paused = False
     player_message = ""
     computer_message = ""
-    current_player = "White"
-    next_player = "Black"
-    remaining_time = turn_duration
 
+    next_player = "Black"
+    if current_player == "Black":
+        next_player = "White"
+    
     print(instructions)
     chessBoard.print_chess_board(main_board)
 
@@ -221,7 +222,10 @@ def new_game(turn_duration: int, noPause: bool) -> tuple[int, str, dict]:
                 continue
             
             case "quit":
-                return remaining_time, current_player, main_board
+                save_filename = "autosave"
+                if len(prompt) > 1:
+                    save_filename = prompt[1]
+                return save_filename, remaining_time, current_player, main_board
 
             case _:
                 computer_message = f"Invalid command - {prompt[0]}"
