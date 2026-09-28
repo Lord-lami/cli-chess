@@ -86,11 +86,11 @@ Commands:
   reset - Resets pieces back to their starting squares.
   clear - Clears the entire board.
   fill wP - Fills entire board with white pawns.
-  pause - Pauses the game.
+  pause - Pauses the game if pausing is not disabled.
   help - Displays this text.
   quit - Quits the program.
 '''
-def new_game(turn_duration: int) -> tuple[int, str, dict]:
+def new_game(turn_duration: int, noPause: bool) -> tuple[int, str, dict]:
     global main_board
     main_board = copy.copy(chessBoard.STARTING_BOARD)
     advice = "Use the 'help' command to view the instructions"
@@ -208,8 +208,13 @@ def new_game(turn_duration: int) -> tuple[int, str, dict]:
                         main_board[col+row] = prompt[1]
 
             case "pause":
-                paused = True
-                continue
+                if not noPause:
+                    paused = True
+                    continue
+                else:
+                    computer_message = "Cannot Pause, Pausing is disabled"
+                    logging.info(computer_message)
+                    continue
 
             case "help":
                 print(instructions)

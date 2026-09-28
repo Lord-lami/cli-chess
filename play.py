@@ -20,6 +20,12 @@ parser.add_argument(
     help="The turn duration in seconds. A value less than 1 will result in no time limit (default: 0)."
 )
 
+parser.add_argument(
+    "-np", "--no-pause",
+    action="store_true",
+    help="Disables the pause command"
+)
+
 ARGS = parser.parse_args()
 if ARGS.log_level != "NONE":
     levels = logging.getLevelNamesMapping()
@@ -32,4 +38,4 @@ else:
 print('CLI Chessboard')
 print('by Olamide Ifarajimi')
 
-game.new_game(ARGS.turn_duration)
+game.new_game(ARGS.turn_duration, ARGS.no_pause)
