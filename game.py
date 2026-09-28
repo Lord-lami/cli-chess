@@ -86,25 +86,29 @@ Commands:
   reset - Resets pieces back to their starting squares.
   clear - Clears the entire board.
   fill wP - Fills entire board with white pawns.
+  pause - Pauses the game.
+  help - Displays this text.
   quit - Quits the program.
 '''
-def new_game(turn_duration: int) -> None:
+def new_game(turn_duration: int) -> tuple[int, str, dict]:
     global main_board
     main_board = copy.copy(chessBoard.STARTING_BOARD)
-    showBoard = True
+    advice = "Use the 'help' command to view the instructions"
+    paused = False
     player_message = ""
     computer_message = ""
     current_player = "White"
     next_player = "Black"
     remaining_time = turn_duration
 
+    print(instructions)
+    chessBoard.print_chess_board(main_board)
 
     while True:
-        print(instructions)
-        if showBoard:
-            chessBoard.print_chess_board(main_board)
-        else:
-            showBoard = True
+        if paused:
+            print("Press Enter to continue", end="")
+            input()
+            paused = False
 
         if player_message:
             print(player_message)
@@ -121,7 +125,7 @@ def new_game(turn_duration: int) -> None:
         if turn_duration > 0 and remaining_time == 0:
             computer_message = f"Turn Expired"
             logging.error(computer_message)
-            showBoard = False
+            computer_message += "\n" + advice
             # The next code line should be replaced with losing logic 
             # for the current player when implementing chess rules
             remaining_time = turn_duration
@@ -130,7 +134,7 @@ def new_game(turn_duration: int) -> None:
         if not command:
             computer_message = "No Command Given"
             logging.error(computer_message)
-            showBoard = False
+            computer_message += "\n" + advice
             continue
 
         prompt = command.split()
@@ -140,7 +144,7 @@ def new_game(turn_duration: int) -> None:
                 if len(prompt) < 3:
                     computer_message = f"Invalid Move {command} : Missing Position argument(s)"
                     logging.error(computer_message)
-                    showBoard = False
+                    computer_message += "\n" + advice
                     continue
 
                 # Anything written after the positions is a player message
@@ -156,7 +160,7 @@ def new_game(turn_duration: int) -> None:
                 if len(prompt) != 2:
                     computer_message = f"Invalid Remove - {command} : Invalid Number of arguments - {len(prompt)}"
                     logging.error(computer_message)
-                    showBoard = False
+                    computer_message += "\n" + advice
                     continue
 
                 computer_message = removePiece(prompt[1], command)
@@ -167,7 +171,7 @@ def new_game(turn_duration: int) -> None:
                 if len(prompt) != 3:
                     computer_message = f"Invalid Set - {command} : Invalid Number of arguments - {len(prompt)}"
                     logging.error(computer_message)
-                    showBoard = False
+                    computer_message += "\n" + advice
                     continue
                 computer_message = setPiece(prompt[1], prompt[2], command)
                 if computer_message:
@@ -178,7 +182,7 @@ def new_game(turn_duration: int) -> None:
                 if len(prompt) != 1:
                     computer_message = f"Invalid Reset - {command} : Invalid Number of arguments - {len(prompt)}"
                     logging.error(computer_message)
-                    showBoard = False
+                    computer_message += "\n" + advice
                     continue
 
                 main_board = copy.copy(chessBoard.STARTING_BOARD)
@@ -187,7 +191,7 @@ def new_game(turn_duration: int) -> None:
                 if len(prompt) != 1:
                     computer_message = f"Invalid Clear - {command} : Invalid Number of arguments - {len(prompt)}"
                     logging.error(computer_message)
-                    showBoard = False
+                    computer_message += "\n" + advice
                     continue
 
                 main_board = {}
@@ -196,22 +200,31 @@ def new_game(turn_duration: int) -> None:
                 if len(prompt) != 2:
                     computer_message = f"Invalid Fill - {command} : Invalid Number of arguments - {len(prompt)}"
                     logging.error(computer_message)
-                    showBoard = False
+                    computer_message += "\n" + advice
                     continue
 
                 for row in chessBoard.ROWS:
                     for col in chessBoard.COLS:
                         main_board[col+row] = prompt[1]
-                
+
+            case "pause":
+                paused = True
+                continue
+
+            case "help":
+                print(instructions)
+                continue
+            
             case "quit":
-                return
+                return remaining_time, current_player, main_board
 
             case _:
                 computer_message = f"Invalid command - {prompt[0]}"
                 logging.error(computer_message)
-                showBoard = False
+                computer_message += "\n" + advice
                 continue
 
         player_message = current_player + ": " + player_message if player_message else ""
         current_player, next_player = next_player, current_player
         remaining_time = turn_duration
+        chessBoard.print_chess_board(main_board)
