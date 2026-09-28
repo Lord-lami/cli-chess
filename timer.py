@@ -36,7 +36,7 @@ def timer_timed_input(duration: int, prompt: str) -> tuple[str, int]:
     stop_timer = threading.Event()
     remaining_time = queue.Queue()
     with patch_stdout():
-        thread = threading.Thread(target=timer, args=(duration, stop_timer, remaining_time))
+        thread = threading.Thread(target=timer, args=(duration, stop_timer, remaining_time), daemon=True)
         thread.start()
         command = asyncio.run(timed_input(duration, prompt))
 
