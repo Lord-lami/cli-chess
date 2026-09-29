@@ -35,6 +35,7 @@ python3 chessBoard.py -t 30
 - Pausing
 - Help
 - Game Saving
+- Game Loading
 
 ## Future Features
 - Chess Rules Validation
