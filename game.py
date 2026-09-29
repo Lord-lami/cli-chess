@@ -86,7 +86,7 @@ Commands:
   reset - Resets pieces back to their starting squares.
   clear - Clears the entire board.
   fill wP - Fills entire board with white pawns.
-  pause - Pauses the game if pausing is not disabled.
+  pause - Pauses the game if pausing is not disabled with the -np flag.
   help - Displays this text.
   quit [save filename] - Quits the program and saves to the loaded save file or autosave. You can optionally add a save filename if you want to save to different file.
 '''

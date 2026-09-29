@@ -32,9 +32,11 @@ python3 chessBoard.py -t 30
 - Board Filling
 - Messaging
 - Timer
+- Pausing
+- Help
+- Game Saving
 
 ## Future Features
-- Game Saving
 - Chess Rules Validation
 - PvP
 - PvE
