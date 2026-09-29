@@ -53,6 +53,8 @@ print('by Olamide Ifarajimi')
 turn_duration, no_pause = ARGS.turn_duration, ARGS.no_pause
 remaining_time, current_player, board = turn_duration, "White", chessBoard.STARTING_BOARD
 
+Path("saves").mkdir(exist_ok=True)
+
 if ARGS.command == "load":
     load_file = Path("saves") / Path(ARGS.filename)
     if not load_file.exists():
@@ -67,7 +69,7 @@ if ARGS.command == "load":
 
 save_filename, remaining_time, current_player, board = game.lax_game(turn_duration, no_pause, \
                                                                      remaining_time, current_player, board)
-if ARGS.command == "load":
+if ARGS.command == "load" and save_filename == "autosave":
     save_filename = ARGS.filename
 
 with shelve.open("saves/"+save_filename) as saved_game:
