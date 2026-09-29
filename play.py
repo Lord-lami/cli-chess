@@ -50,8 +50,12 @@ else:
 print('CLI Chessboard')
 print('by Olamide Ifarajimi')
 
-turn_duration, no_pause = ARGS.turn_duration, ARGS.no_pause
-remaining_time, current_player, board = turn_duration, "White", chessBoard.STARTING_BOARD
+turn_duration, pause = ARGS.turn_duration, False
+remaining_time, current_player= turn_duration, "White"
+board = chessBoard.STARTING_BOARD
+
+if ARGS.no_pause:
+    pause = None
 
 Path("saves").mkdir(exist_ok=True)
 
@@ -62,19 +66,20 @@ if ARGS.command == "load":
         sys.exit(1)
     with shelve.open(load_file) as saved_game:
         turn_duration = saved_game["turn_duration"]
-        no_pause = saved_game["no_pause"]
+        pause = saved_game["pause"]
         remaining_time = saved_game["remaining_time"]
         current_player = saved_game["current_player"]
         board = saved_game["board"]
 
-save_filename, remaining_time, current_player, board = game.lax_game(turn_duration, no_pause, \
-                                                                     remaining_time, current_player, board)
+save_filename, remaining_time, current_player, player_message, board = game.lax_game(turn_duration, pause, \
+                                                                     remaining_time, current_player, \
+                                                                        board)
 if ARGS.command == "load" and save_filename == "autosave":
     save_filename = ARGS.filename
 
 with shelve.open("saves/"+save_filename) as saved_game:
     saved_game["turn_duration"] = turn_duration
-    saved_game["no_pause"] = no_pause
+    saved_game["pause"] = pause
     saved_game["remaining_time"] = remaining_time
     saved_game["current_player"] = current_player
     saved_game["board"] = board
