@@ -8,16 +8,20 @@ python3 --version
 ```
 2. Run:
 ```bash
-python3 chessBoard.py
+python3 play.py
 ```
-3. To see logs:
+
+3. To load the last saved game:
 ```bash
-python3 chessBoard.py -l WARNING
+python3 play.py load
 ```
+
 4. To use the timer:
 ```bash
-python3 chessBoard.py -t 30
+python3 play.py -t 30
 ```
+
+
 
 
 ## Current Features
