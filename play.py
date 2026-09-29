@@ -4,12 +4,12 @@ from pathlib import Path
 
 
 parser = argparse.ArgumentParser(
-    description="CLI Chess: Make you boring CLI more fun",
+    description="CLI Chess: Make your boring CLI more fun",
     epilog="Example: python chessBoard.py"
 )
 parser.add_argument(
     "-l", "--log-level",
-    choices=["NONE", "DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
+    choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL", "NONE"],
     default="NONE",
     help="Minimum log level to display (default: NONE)"
 )
