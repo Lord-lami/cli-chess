@@ -90,13 +90,13 @@ Commands:
   help - Displays this text.
   quit [save filename] - Quits the program and saves to the loaded save file or autosave. You can optionally add a save filename if you want to save to different file.
 '''
-def lax_game(turn_duration: int, noPause: bool, remaining_time, current_player, board) -> tuple[str, int, str, dict]:
+
+ADVICE = "Use the 'help' command to view the instructions"
+def lax_game(turn_duration: int, noPause: bool|None, remaining_time, current_player, board) -> tuple[str, int, str, str, dict]:
     global main_board
     main_board = board
-    advice = "Use the 'help' command to view the instructions"
-    paused = False
-    player_message = ""
     computer_message = ""
+    player_message = ""
 
     next_player = "Black"
     if current_player == "Black":
@@ -106,11 +106,6 @@ def lax_game(turn_duration: int, noPause: bool, remaining_time, current_player, 
     chessBoard.print_chess_board(main_board)
 
     while True:
-        if paused:
-            print("Press Enter to continue", end="")
-            input()
-            paused = False
-
         if player_message:
             print(player_message)
             player_message = ""
@@ -126,7 +121,7 @@ def lax_game(turn_duration: int, noPause: bool, remaining_time, current_player, 
         if turn_duration > 0 and remaining_time == 0:
             computer_message = f"Turn Expired"
             logging.error(computer_message)
-            computer_message += "\n" + advice
+            computer_message += "\n" + ADVICE
             # The next code line should be replaced with losing logic 
             # for the current player when implementing chess rules
             remaining_time = turn_duration
@@ -135,7 +130,7 @@ def lax_game(turn_duration: int, noPause: bool, remaining_time, current_player, 
         if not command:
             computer_message = "No Command Given"
             logging.error(computer_message)
-            computer_message += "\n" + advice
+            computer_message += "\n" + ADVICE
             continue
 
         prompt = command.split()
@@ -145,7 +140,7 @@ def lax_game(turn_duration: int, noPause: bool, remaining_time, current_player, 
                 if len(prompt) < 3:
                     computer_message = f"Invalid Move {command} : Missing Position argument(s)"
                     logging.error(computer_message)
-                    computer_message += "\n" + advice
+                    computer_message += "\n" + ADVICE
                     continue
 
                 # Anything written after the positions is a player message
@@ -161,7 +156,7 @@ def lax_game(turn_duration: int, noPause: bool, remaining_time, current_player, 
                 if len(prompt) != 2:
                     computer_message = f"Invalid Remove - {command} : Invalid Number of arguments - {len(prompt)}"
                     logging.error(computer_message)
-                    computer_message += "\n" + advice
+                    computer_message += "\n" + ADVICE
                     continue
 
                 computer_message = removePiece(prompt[1], command)
@@ -172,7 +167,7 @@ def lax_game(turn_duration: int, noPause: bool, remaining_time, current_player, 
                 if len(prompt) != 3:
                     computer_message = f"Invalid Set - {command} : Invalid Number of arguments - {len(prompt)}"
                     logging.error(computer_message)
-                    computer_message += "\n" + advice
+                    computer_message += "\n" + ADVICE
                     continue
                 computer_message = setPiece(prompt[1], prompt[2], command)
                 if computer_message:
@@ -183,7 +178,7 @@ def lax_game(turn_duration: int, noPause: bool, remaining_time, current_player, 
                 if len(prompt) != 1:
                     computer_message = f"Invalid Reset - {command} : Invalid Number of arguments - {len(prompt)}"
                     logging.error(computer_message)
-                    computer_message += "\n" + advice
+                    computer_message += "\n" + ADVICE
                     continue
 
                 main_board = copy.copy(chessBoard.STARTING_BOARD)
@@ -192,7 +187,7 @@ def lax_game(turn_duration: int, noPause: bool, remaining_time, current_player, 
                 if len(prompt) != 1:
                     computer_message = f"Invalid Clear - {command} : Invalid Number of arguments - {len(prompt)}"
                     logging.error(computer_message)
-                    computer_message += "\n" + advice
+                    computer_message += "\n" + ADVICE
                     continue
 
                 main_board = {}
@@ -201,7 +196,7 @@ def lax_game(turn_duration: int, noPause: bool, remaining_time, current_player, 
                 if len(prompt) != 2:
                     computer_message = f"Invalid Fill - {command} : Invalid Number of arguments - {len(prompt)}"
                     logging.error(computer_message)
-                    computer_message += "\n" + advice
+                    computer_message += "\n" + ADVICE
                     continue
 
                 for row in chessBoard.ROWS:
@@ -209,11 +204,12 @@ def lax_game(turn_duration: int, noPause: bool, remaining_time, current_player, 
                         main_board[col+row] = prompt[1]
 
             case "pause":
-                if not noPause:
-                    paused = True
+                if noPause != None:
+                    print("Press Enter to continue", end="")
+                    input()
                     continue
                 else:
-                    computer_message = "Cannot Pause, Pausing is disabled"
+                    computer_message = "Cannot Pause: Pausing is disabled"
                     logging.info(computer_message)
                     continue
 
@@ -225,12 +221,12 @@ def lax_game(turn_duration: int, noPause: bool, remaining_time, current_player, 
                 save_filename = "autosave"
                 if len(prompt) > 1:
                     save_filename = prompt[1]
-                return save_filename, remaining_time, current_player, main_board
+                return save_filename, remaining_time, current_player, player_message, main_board
 
             case _:
                 computer_message = f"Invalid command - {prompt[0]}"
                 logging.error(computer_message)
-                computer_message += "\n" + advice
+                computer_message += "\n" + ADVICE
                 continue
 
         player_message = current_player + ": " + player_message if player_message else ""
