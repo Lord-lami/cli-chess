@@ -65,9 +65,9 @@ python play.py -h
 - Help
 - Game Saving
 - Game Loading
+- Chess Rules Validation
 
 ## Future Features
-- Chess Rules Validation
 - PvP
 - PvE
 - Tournaments
