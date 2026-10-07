@@ -39,10 +39,13 @@ enforcement.add_argument(
 subparsers = parser.add_subparsers(dest="command")
 
 load_parser = subparsers.add_parser("load")
-load_parser.add_subparsers(
+filename_parser = load_parser.add_subparsers(
     dest="filename", 
     description="Filename of the save file in saves folder to load (default: autosave).",
 )
+savefiles = [file.name for file in Path("saves").iterdir() if file.is_file()]
+for sf in savefiles:
+    filename_parser.add_parser(sf)
 # load_parser.add_argument(
 #     "-f", "--filename",
 #     type=str,
@@ -82,12 +85,12 @@ if ARGS.command == "load":
         print(f"There is no game save file, {load_file}", file=sys.stderr)
         sys.exit(1)
     with shelve.open(load_file) as saved_game:
-        turn_duration = saved_game["turn_duration"]
-        pause = saved_game["pause"]
-        arbiter = saved_game["arbiter"]
-        remaining_time = saved_game["remaining_time"]
-        current_player = saved_game["current_player"]
-        board = saved_game["board"]
+        turn_duration = saved_game.get("turn_duration", turn_duration)
+        pause = saved_game.get("pause", pause)
+        arbiter = saved_game.get("arbiter", arbiter)
+        remaining_time = saved_game.get("remaining_time", remaining_time)
+        current_player = saved_game.get("current_player", current_player)
+        board = saved_game.get("board", board)
 
 save_filename, remaining_time, current_player, board = game.lax_game(turn_duration, pause, arbiter, \
                                                                      remaining_time, current_player, \
