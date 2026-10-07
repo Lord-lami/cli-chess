@@ -76,10 +76,10 @@ if ARGS.no_pause:
 Path("saves").mkdir(exist_ok=True)
 
 filename = "autosave"
-if ARGS.filename:
-    filename = ARGS.filename
 
 if ARGS.command == "load":
+    if ARGS.filename:
+        filename = ARGS.filename
     load_file = Path("saves") / Path(filename)
     if not load_file.exists():
         print(f"There is no game save file, {load_file}", file=sys.stderr)
