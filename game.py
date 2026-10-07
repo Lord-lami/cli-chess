@@ -1,4 +1,4 @@
-import chessBoard, timer
+import chessBoard, timer, possibleMoves
 import logging, copy
 
 main_board = dict()
@@ -8,7 +8,7 @@ main_board = dict()
 # It returns a computer message if:
 # 1. Any of the positions are not valid
 # 2. There is no piece at fromPos
-def movePiece(fromPos: str, toPos: str, command: str) -> str:
+def movePiece(fromPos: str, toPos: str, command: str, arbiter: bool) -> str:
     global main_board
     # Check that the postions are valid
     if not chessBoard.is_valid_position(fromPos):
@@ -29,6 +29,14 @@ def movePiece(fromPos: str, toPos: str, command: str) -> str:
         return computer_message
 
     logging.info("The First Position has a Piece on it")
+
+
+    # If arbiter is set, check that the move is a legal chess move
+    if arbiter:
+        legal_moves = possibleMoves.legal_moves(main_board, fromPos)
+        if toPos not in legal_moves:
+            computer_message = "Arbiter: Illegal Move"
+            return computer_message
 
     main_board[toPos] = main_board[fromPos]
     del main_board[fromPos]
@@ -86,13 +94,14 @@ Commands:
   reset - Resets pieces back to their starting squares.
   clear - Clears the entire board.
   fill wP - Fills entire board with white pawns.
+  legal e2 - Shows the legal moves available for the piece on a board and in a message
   pause - Pauses the game if pausing is not disabled with the -np flag.
   help - Displays this text.
   quit [save filename] - Quits the program and saves to the loaded save file or autosave. You can optionally add a save filename if you want to save to different file.
 '''
 
 ADVICE = "Use the 'help' command to view the instructions"
-def lax_game(turn_duration: int, noPause: bool|None, remaining_time, current_player, board) -> tuple[str, int, str, str, dict]:
+def lax_game(turn_duration: int, noPause: bool|None, arbiter: bool, remaining_time: int, current_player: str, board: dict[str, str]) -> tuple[str, int, str, dict]:
     global main_board
     main_board = board
     computer_message = ""
@@ -148,7 +157,7 @@ def lax_game(turn_duration: int, noPause: bool|None, remaining_time, current_pla
                     player_message = " ".join(prompt[3:])
                     logging.info("Received player message: " + player_message)
 
-                computer_message = movePiece(prompt[1], prompt[2], command)
+                computer_message = movePiece(prompt[1], prompt[2], command, arbiter)
                 if computer_message:
                     continue
 
@@ -202,6 +211,22 @@ def lax_game(turn_duration: int, noPause: bool|None, remaining_time, current_pla
                 for row in chessBoard.ROWS:
                     for col in chessBoard.COLS:
                         main_board[col+row] = prompt[1]
+            case "legal":
+                if len(prompt) != 2:
+                    computer_message = f"Invalid Legal - {command} : Invalid Number of arguments - {len(prompt)}"
+                    logging.error(computer_message)
+                    computer_message += "\n" + ADVICE
+                    continue
+
+                legal_moves = possibleMoves.legal_moves(main_board, prompt[1])
+                protoboard = main_board.copy()
+                piece = protoboard[prompt[1]]
+                del protoboard[prompt[1]]
+                for move in legal_moves:
+                    protoboard[move] = piece
+                computer_message = f"Legal Moves: {legal_moves}"
+                chessBoard.print_chess_board(protoboard)
+                continue
 
             case "pause":
                 if noPause != None:
@@ -221,7 +246,7 @@ def lax_game(turn_duration: int, noPause: bool|None, remaining_time, current_pla
                 save_filename = "autosave"
                 if len(prompt) > 1:
                     save_filename = prompt[1]
-                return save_filename, remaining_time, current_player, player_message, main_board
+                return save_filename, remaining_time, current_player, main_board
 
             case _:
                 computer_message = f"Invalid command - {prompt[0]}"

@@ -5,7 +5,7 @@ ROWS = "87654321"
 COLS = "abcdefgh"
 
 # Fill the starting_board dictionary with 
-# the - starting_board[position] = piece - format
+# the format - starting_board[position] = piece
 # of a starting chessboard
 for letter in COLS:
     starting_board[letter+"2"] = "wP"
