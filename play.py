@@ -39,19 +39,19 @@ enforcement.add_argument(
 subparsers = parser.add_subparsers(dest="command")
 
 load_parser = subparsers.add_parser("load")
-filename_parser = load_parser.add_subparsers(
-    dest="filename", 
-    description="Filename of the save file in saves folder to load (default: autosave).",
-)
-savefiles = [file.name for file in Path("saves").iterdir() if file.is_file()]
-for sf in savefiles:
-    filename_parser.add_parser(sf)
-# load_parser.add_argument(
-#     "-f", "--filename",
-#     type=str,
-#     default="autosave",
-#     help="Filename of the save file in saves folder to load"
+# filename_parser = load_parser.add_subparsers(
+#     dest="filename", 
+#     description="Filename of the save file in saves folder to load (default: autosave).",
 # )
+savefiles = [file.name for file in Path("saves").iterdir() if file.is_file()]
+# for sf in savefiles:
+#     filename_parser.add_parser(sf)
+load_parser.add_argument(
+    "filename",
+    choices=savefiles,
+    default="autosave",
+    help="Filename of the save file in saves folder to load"
+)
 
 ARGS = parser.parse_args()
 
