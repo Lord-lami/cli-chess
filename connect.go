@@ -261,6 +261,7 @@ func listenForAUnicastMessageAndReply(conn *net.UDPConn) {
 			// Choose player
 			log.Println("Blocking for chosenOpponent")
 			chosenOpponent <- &user{playerName, raddr}
+			// opponent = &user{playerName, raddr}
 			log.Println("Sent chosenOpponent")
 			log.Println("Playing with", playerName, "at", raddr)
 		} else {
@@ -269,6 +270,7 @@ func listenForAUnicastMessageAndReply(conn *net.UDPConn) {
 			if err != nil {
 				log.Panicln(err)
 			}
+			chosenOpponent <- nil
 			log.Println("Rejected", playerName, "at", raddr)
 		}
 	}
@@ -403,8 +405,10 @@ func channelInput() {
 			return
 		}
 		chosenIndex = cIdx
-		// log.Printf("Sending currentPlayes[%d]", chosenIndex)
-		// prospectiveOpponent <- currentPlayers[chosenIndex]
+		go func ()  {
+			log.Printf("Sending currentPlayes[%d]", chosenIndex)
+			prospectiveOpponent <- currentPlayers[chosenIndex]
+		}()
 	}
 }
 
@@ -477,19 +481,19 @@ func seekConnection() {
 	}(ctx)
 
 	for opponent == nil {
+		fmt.Println("Channeling Input")
+		channelInput()
 		select {
 		case opponent = <-chosenOpponent:
 			fmt.Println("Channeled Opponent", opponent)
-		default:
-			fmt.Println("Channeling Input")
-			channelInput()
-			var considering *user
-			if chosenIndex == -1 {
-				log.Println("None chosen")
-				continue
-			} else {
-				considering = currentPlayers[chosenIndex]
-			}
+		case considering := <- prospectiveOpponent:
+			// var considering *user
+			// if chosenIndex == -1 {
+			// 	log.Println("None chosen")
+			// 	continue
+			// } else {
+			// 	considering = currentPlayers[chosenIndex]
+			// }
 			log.Println("Recieved", considering)
 			initiateConnWith(conn, considering)
 			t := time.Tick(30 * time.Second)
@@ -499,7 +503,7 @@ func seekConnection() {
 				if opponent != nil { // Opponent replied yes (y-)
 					fmt.Println("Chosen opponent", chosenIndex, opponent)
 				} else { // Opponent replied no (n-)
-					fmt.Println("You connection request was rejected by", considering)
+					fmt.Println("Your connection request was rejected by", considering)
 				}
 			case <-t:
 				fmt.Println("Time up!")
