@@ -3,12 +3,13 @@ import logging, copy
 
 main_board = dict()
 
-# movePiece takes the piece at fromPos in the main_board and
-# puts it at toPos in the main_board.
-# It returns a computer message if:
-# 1. Any of the positions are not valid
-# 2. There is no piece at fromPos
 def movePiece(fromPos: str, toPos: str, command: str, arbiter: bool) -> str:
+    """movePiece takes the piece at fromPos in the main_board and
+puts it at toPos in the main_board.
+
+It returns a computer message if:
+1. Any of the positions are not valid
+2. There is no piece at fromPos"""
     global main_board
     # Check that the postions are valid
     if not chessBoard.is_valid_position(fromPos):
@@ -42,11 +43,12 @@ def movePiece(fromPos: str, toPos: str, command: str, arbiter: bool) -> str:
     del main_board[fromPos]
 
 
-# removePiece removes the piece at fromPos from the main_board
-# It returns a computer_message if:
-# 1. fromPos is not a valid chessboard position
-# 2. There is no piece at fromPos
 def removePiece(fromPos: str, command: str) -> str:
+    """removePiece removes the piece at fromPos from the main_board
+
+It returns a computer_message if:
+1. fromPos is not a valid chessboard position
+2. There is no piece at fromPos"""
     global main_board
     # Check that the postion is valid
     if not chessBoard.is_valid_position(fromPos):
@@ -61,11 +63,12 @@ def removePiece(fromPos: str, command: str) -> str:
 
     del main_board[fromPos]
 
-# setPiece sets the piece toPiece on the position pos on the main_board
-# It returns a computer message if:
-# 1. The pos is not valid chessboard position
-# 2. toPiece is outside of the VALID_PIECES
 def setPiece(pos: str, toPiece: str, command: str) -> str:
+    """setPiece sets the piece toPiece on the position pos on the main_board
+
+It returns a computer message if:
+1. The pos is not valid chessboard position
+2. toPiece is outside of the VALID_PIECES"""
     global main_board
     # Check that the postion is valid
     if not chessBoard.is_valid_position(pos):
@@ -102,6 +105,7 @@ Commands:
 
 ADVICE = "Use the 'help' command to view the instructions"
 def lax_game(turn_duration: int, noPause: bool|None, arbiter: bool, remaining_time: int, current_player: str, board: dict[str, str]) -> tuple[str, int, str, dict]:
+    """An offline game of CLI Chess"""
     global main_board
     main_board = board
     computer_message = ""
