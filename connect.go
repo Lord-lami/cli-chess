@@ -87,6 +87,10 @@ func iAmAvailable(gdconn *net.UDPConn, gaddr *net.UDPAddr) {
 	}
 }
 
+// listenForAUnicastMessageAndReply listens on the conn's 
+// local address and facilitates response when neccesary.
+// It receives on the [replyChan] channel when a y/n answer
+// is neccesary.
 func listenForAUnicastMessageAndReply(conn *net.UDPConn) {
 	buff := make([]byte, 1024)
 	n, raddr, err := conn.ReadFromUDP(buff)
@@ -159,6 +163,8 @@ func listenForAUnicastMessageAndReply(conn *net.UDPConn) {
 	}
 }
 
+// printCurrentPlayersList prints the list of current players
+// in [currentPlayers]
 func printCurrentPlayersList() {
 	// Print updated currentPlayers list
 	if len(currentPlayers) > 0 {
@@ -169,11 +175,14 @@ func printCurrentPlayersList() {
 	}
 }
 
+// listenForAGroupMessage listens on the group IP address
+// it updates [currentPlayers] and uses [printCurrentPlayersList] 
+// to print the list of players when there is a change to the
+// [currentPlayers] list. 
 func listenForAGroupMessage(gconn *net.UDPConn) {
 	// Monitor messages sent the group
 
 	buff := make([]byte, 1024)
-	// fmt.Println("Listening to the group")
 	n, raddr, err := gconn.ReadFromUDP(buff)
 	if err != nil {
 		if errors.Is(err, net.ErrClosed) {
@@ -215,6 +224,9 @@ func listenForAGroupMessage(gconn *net.UDPConn) {
 	}
 }
 
+// channelInput sends the terminal input on the [replyChan]
+// or sets the [chosenIndex] depending on whether [replyChan]
+// is blocked by a receive or not.
 func channelInput() {
 	var input string
 	fmt.Scan(&input)
@@ -245,6 +257,8 @@ func channelInput() {
 	}
 }
 
+// initiateConnWith sends a connection request message to the 
+// prospectiveOpponent
 func initiateConnWith(conn *net.UDPConn, prospectiveOpponent *user) {
 	_, err := conn.WriteToUDP([]byte("i-"+userName), prospectiveOpponent.ipAddr)
 	if err != nil {
@@ -252,6 +266,8 @@ func initiateConnWith(conn *net.UDPConn, prospectiveOpponent *user) {
 	}
 }
 
+// seekConnection harnesses all the functions to make the user discoverable
+// and discover other users.
 func seekConnection() {
 	fmt.Println("Input your username")
 	fmt.Scan(&userName)
@@ -282,14 +298,6 @@ func seekConnection() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	// ip2Idx[gdconn.LocalAddr().String()] = -1
-
-	fmt.Println("caddr", conn.LocalAddr())
-
-	fmt.Println("gdaddr", gdconn.LocalAddr())
-
-	fmt.Println("gaddr", glconn.LocalAddr())
-
 	go func(ctx context.Context) {
 		for {
 			select {
@@ -314,28 +322,17 @@ func seekConnection() {
 	}(ctx)
 
 	for opponent == nil {
-		fmt.Println("Channeling Input")
 		channelInput()
 		select {
 		case opponent = <-chosenOpponent:
-			fmt.Println("Channeled Opponent", opponent)
 		case considering := <-prospectiveOpponent:
-			// var considering *user
-			// if chosenIndex == -1 {
-			// 	log.Println("None chosen")
-			// 	continue
-			// } else {
-			// 	considering = currentPlayers[chosenIndex]
-			// }
 			log.Println("Recieved", considering)
 			initiateConnWith(conn, considering)
 			fmt.Println("Waiting For reply from", considering)
 			t := time.NewTimer(time.Duration(waitDuration) * time.Second)
 			select {
 			case opponent = <-chosenOpponent:
-				if opponent != nil { // Opponent replied yes (y-)
-					fmt.Println("Chosen opponent", chosenIndex, opponent)
-				} else { // Opponent replied no (n-)
+				if opponent == nil { // Opponent replied no (n-)
 					fmt.Println("Your connection request was rejected by", considering)
 				}
 			case <-t.C:
