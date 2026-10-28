@@ -185,6 +185,11 @@ var prospectiveOpponent chan *user = make(chan *user)
 // opponent is the chosen opponent
 var opponent *user
 
+// waitDuration is the duration in seconds
+// that a connection request will wait for
+// before timing out.
+var waitDuration int = 30
+
 // replyChan is the channel for sending and
 // receiving the reply to a connection request
 // from another player
@@ -196,6 +201,7 @@ var replyChan chan string = make(chan string)
 // if the user was present in the list.
 func imUnavailable(gdconn *net.UDPConn, gaddr *net.UDPAddr) {
 	// Tell the group you're not available
+	log.Println("I'm Unavailable")
 	_, err := gdconn.WriteToUDP([]byte("d-"), gaddr)
 	if err != nil {
 		log.Panic(err)
@@ -227,7 +233,9 @@ func listenForAUnicastMessageAndReply(conn *net.UDPConn) {
 	message := string(buff[:n])
 	command := message[:2]
 
-	isReplyFromChosenPlayer := chosenIndex >= 0 && raddr.String() == currentPlayers[chosenIndex].ipAddr.String()
+	isReplyFromChosenPlayer := chosenIndex >= 0 &&
+		chosenIndex < len(currentPlayers) &&
+		raddr.String() == currentPlayers[chosenIndex].ipAddr.String()
 	switch command {
 	// Recieved Reply (Yes/No) from a player that you chose
 	case "y-":
@@ -250,28 +258,37 @@ func listenForAUnicastMessageAndReply(conn *net.UDPConn) {
 		log.Println("Received Connection Request from", playerName, raddr)
 		fmt.Println("Accept Connection Request from", playerName, raddr, "?")
 		fmt.Print("Y/n: ")
-		// Inputted reply is sent on reply channel
-		if "y" == <-replyChan {
-			// Reply: Tell the player you accept
-			_, err := conn.WriteToUDP([]byte("y-"), raddr)
-			if err != nil {
-				log.Panicln(err)
-			}
 
-			// Choose player
-			log.Println("Blocking for chosenOpponent")
-			chosenOpponent <- &user{playerName, raddr}
-			// opponent = &user{playerName, raddr}
-			log.Println("Sent chosenOpponent")
-			log.Println("Playing with", playerName, "at", raddr)
-		} else {
-			// Reply: Tell the player you reject
-			_, err := conn.WriteToUDP([]byte("n-"), raddr)
-			if err != nil {
-				log.Panicln(err)
+		t := time.NewTimer(time.Duration(waitDuration) * time.Second)
+
+		select {
+		// Inputted reply is sent on reply channel
+		case reply := <-replyChan:
+			if "y" == reply {
+				// Reply: Tell the player you accept
+				_, err := conn.WriteToUDP([]byte("y-"), raddr)
+				if err != nil {
+					log.Panicln(err)
+				}
+
+				// Choose player
+				log.Println("Blocking for chosenOpponent")
+				chosenOpponent <- &user{playerName, raddr}
+				// opponent = &user{playerName, raddr}
+				log.Println("Sent chosenOpponent")
+				log.Println("Playing with", playerName, "at", raddr)
+			} else {
+				// Reply: Tell the player you reject
+				_, err := conn.WriteToUDP([]byte("n-"), raddr)
+				if err != nil {
+					log.Panicln(err)
+				}
+				chosenOpponent <- nil
+				log.Println("Rejected", playerName, "at", raddr)
 			}
-			chosenOpponent <- nil
-			log.Println("Rejected", playerName, "at", raddr)
+		// Exit in case of a time out
+		case <-t.C:
+			fmt.Println("Time's up!")
 		}
 	}
 }
@@ -331,9 +348,11 @@ func waitToBeChosen(ctx context.Context, conn net.UDPConn, reply <-chan string, 
 
 func printCurrentPlayersList() {
 	// Print updated currentPlayers list
-	fmt.Printf("Chose a user number (0 - %d)\n", len(currentPlayers)-1)
-	for i, u := range currentPlayers {
-		fmt.Printf("%d. %v\n", i, u)
+	if len(currentPlayers) > 0 {
+		fmt.Printf("Chose a user number (0 - %d)\n", len(currentPlayers)-1)
+		for i, u := range currentPlayers {
+			fmt.Printf("%d. %v\n", i, u)
+		}
 	}
 }
 
@@ -366,6 +385,7 @@ func listenForAGroupMessage(gconn *net.UDPConn) {
 		}
 
 	case "d-":
+		log.Printf("%s is unavailable\n", playerName)
 		if present {
 			log.Printf("Removing %s - %s from list\n", playerName, raddr)
 			idx := ip2Idx[raddr.String()]
@@ -405,7 +425,7 @@ func channelInput() {
 			return
 		}
 		chosenIndex = cIdx
-		go func ()  {
+		go func() {
 			log.Printf("Sending currentPlayes[%d]", chosenIndex)
 			prospectiveOpponent <- currentPlayers[chosenIndex]
 		}()
@@ -486,7 +506,7 @@ func seekConnection() {
 		select {
 		case opponent = <-chosenOpponent:
 			fmt.Println("Channeled Opponent", opponent)
-		case considering := <- prospectiveOpponent:
+		case considering := <-prospectiveOpponent:
 			// var considering *user
 			// if chosenIndex == -1 {
 			// 	log.Println("None chosen")
@@ -496,8 +516,8 @@ func seekConnection() {
 			// }
 			log.Println("Recieved", considering)
 			initiateConnWith(conn, considering)
-			t := time.Tick(30 * time.Second)
 			fmt.Println("Waiting For reply from", considering)
+			t := time.NewTimer(time.Duration(waitDuration) * time.Second)
 			select {
 			case opponent = <-chosenOpponent:
 				if opponent != nil { // Opponent replied yes (y-)
@@ -505,12 +525,16 @@ func seekConnection() {
 				} else { // Opponent replied no (n-)
 					fmt.Println("Your connection request was rejected by", considering)
 				}
-			case <-t:
-				fmt.Println("Time up!")
+			case <-t.C:
+				fmt.Println("Time's up!")
 			}
 		}
 	}
-	imUnavailable(conn, gaddr)
+	cancel()
+	for range(4) {
+		imUnavailable(conn, gaddr)
+	}
+	
 	fmt.Println("Chosen:", opponent)
 }
 
