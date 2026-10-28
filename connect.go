@@ -351,33 +351,6 @@ func seekConnection() {
 	fmt.Println("Chosen:", opponent)
 }
 
-func chooseFromPlayerList(conn net.UDPConn, chosenOppIndexStrChan <-chan string, choice chan<- *user) {
-	chosenIndexStr := <-chosenOppIndexStrChan
-	chosenIndex, err := strconv.Atoi(chosenIndexStr)
-	if err != nil {
-		log.Panic(err)
-	}
-
-	// Request connection with opponent
-	_, err = conn.WriteToUDP([]byte("i-"+userName), currentPlayers[chosenIndex].ipAddr)
-	if err != nil {
-		log.Panicln(err)
-	}
-	// reply := make([]byte, 1)
-	// // Get a reply
-	// _, err = conn.Read(reply)
-	// if err != nil {
-	// 	log.Panic(err)
-	// }
-	// if reply[0] == 'y' {
-	// 	choice <- currentPlayers[chosenIndex]
-	// } else {
-	// 	log.Println("Rejected by", currentPlayers[chosenIndex].userName, currentPlayers[chosenIndex].ipAddr)
-	// }
-
-}
-
-
 func main() {
 	seekConnection()
 }
