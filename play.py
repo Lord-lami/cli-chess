@@ -21,6 +21,12 @@ parser.add_argument(
     help="The turn duration in seconds. A value less than 1 will result in no time limit (default: 0)."
 )
 
+parser.add_argument(
+    "--online",
+    action="store_true",
+    help="Starts an online game"
+)
+
 enforcement = parser.add_mutually_exclusive_group()
 
 enforcement.add_argument(
@@ -43,6 +49,8 @@ load_parser = subparsers.add_parser("load")
 #     dest="filename", 
 #     description="Filename of the save file in saves folder to load (default: autosave).",
 # )
+Path("saves").mkdir(exist_ok=True)
+
 savefiles = [file.name for file in Path("saves").iterdir() if file.is_file()]
 # for sf in savefiles:
 #     filename_parser.add_parser(sf)
@@ -73,8 +81,6 @@ board = chessBoard.STARTING_BOARD
 if ARGS.no_pause:
     pause = None
 
-Path("saves").mkdir(exist_ok=True)
-
 filename = "autosave"
 
 if ARGS.command == "load":
@@ -92,7 +98,10 @@ if ARGS.command == "load":
         current_player = saved_game.get("current_player", current_player)
         board = saved_game.get("board", board)
 
-save_filename, remaining_time, current_player, board = game.lax_game(turn_duration, pause, arbiter, \
+if ARGS.online:
+    sys.exit()
+
+save_filename, remaining_time, current_player, board = game.offline_game(turn_duration, pause, arbiter, \
                                                                      remaining_time, current_player, \
                                                                         board)
 if ARGS.command == "load" and save_filename == "autosave":
