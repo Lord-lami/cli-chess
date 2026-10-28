@@ -104,7 +104,7 @@ Commands:
 '''
 
 ADVICE = "Use the 'help' command to view the instructions"
-def lax_game(turn_duration: int, noPause: bool|None, arbiter: bool, remaining_time: int, current_player: str, board: dict[str, str]) -> tuple[str, int, str, dict]:
+def offline_game(turn_duration: int, noPause: bool|None, arbiter: bool, remaining_time: int, current_player: str, board: dict[str, str]) -> tuple[str, int, str, dict]:
     """An offline game of CLI Chess"""
     global main_board
     main_board = board
