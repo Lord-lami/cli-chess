@@ -99,11 +99,21 @@ if ARGS.command == "load":
         board = saved_game.get("board", board)
 
 if ARGS.online:
-    sys.exit()
-
-save_filename, remaining_time, current_player, board = game.offline_game(turn_duration, pause, arbiter, \
-                                                                     remaining_time, current_player, \
-                                                                        board)
+    save_filename, \
+        remaining_time, \
+            current_player, \
+                board = \
+                    game.online_game(turn_duration, pause, arbiter, \
+                                        remaining_time, current_player, \
+                                            board)
+else:
+    save_filename, \
+        remaining_time, \
+            current_player, \
+                board = \
+                    game.offline_game(turn_duration, pause, arbiter, \
+                                        remaining_time, current_player, \
+                                            board)
 if ARGS.command == "load" and save_filename == "autosave":
     save_filename = filename
 
