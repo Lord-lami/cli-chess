@@ -1,5 +1,5 @@
 import chessBoard, timer, possibleMoves
-import logging, copy, subprocess
+import logging, copy, subprocess, os
 
 main_board = dict()
 
@@ -270,7 +270,32 @@ def online_game(turn_duration: int,
                 current_player: str, 
                 board: dict[str, str]) -> tuple[str, int, str, dict]:
     """An online game of CLI Chess"""
-    subprocess.run(["go", "run", "connect.go"])
+    read_fd, write_fd = os.pipe()
+
+    os.environ["DATA_FD"] = str(write_fd)
+
+    try:
+        subprocess.run(["go", "run", "connect.go"], pass_fds=(write_fd,), check=True)
+
+        # Python no longer needs its own copy of the write end.
+        os.close(write_fd)
+        write_fd = -1
+
+        # Read data from Go.
+        with os.fdopen(read_fd, "r") as pipe:
+            read_fd = -1
+            result = pipe.read()
+
+        print("Received from Go:", result)
+
+    finally:
+        if write_fd != -1:
+            os.close(write_fd)
+
+        if read_fd != -1:
+            os.close(read_fd)
+
+    print("Opponent Socket:", result)
     return
     global main_board
     main_board = board

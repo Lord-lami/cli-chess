@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -87,7 +88,7 @@ func iAmAvailable(gdconn *net.UDPConn, gaddr *net.UDPAddr) {
 	}
 }
 
-// listenForAUnicastMessageAndReply listens on the conn's 
+// listenForAUnicastMessageAndReply listens on the conn's
 // local address and facilitates response when neccesary.
 // It receives on the [replyChan] channel when a y/n answer
 // is neccesary.
@@ -176,9 +177,9 @@ func printCurrentPlayersList() {
 }
 
 // listenForAGroupMessage listens on the group IP address
-// it updates [currentPlayers] and uses [printCurrentPlayersList] 
+// it updates [currentPlayers] and uses [printCurrentPlayersList]
 // to print the list of players when there is a change to the
-// [currentPlayers] list. 
+// [currentPlayers] list.
 func listenForAGroupMessage(gconn *net.UDPConn) {
 	// Monitor messages sent the group
 
@@ -257,7 +258,7 @@ func channelInput() {
 	}
 }
 
-// initiateConnWith sends a connection request message to the 
+// initiateConnWith sends a connection request message to the
 // prospectiveOpponent
 func initiateConnWith(conn *net.UDPConn, prospectiveOpponent *user) {
 	_, err := conn.WriteToUDP([]byte("i-"+userName), prospectiveOpponent.ipAddr)
@@ -345,6 +346,28 @@ func seekConnection() {
 		imUnavailable(conn, gaddr)
 	}
 
+	fdStr := os.Getenv("DATA_FD")
+	opponent_socket := fmt.Sprintf("%s:%d\n", opponent.ipAddr.IP.String(), opponent.ipAddr.Port)
+	fd, err := strconv.Atoi(fdStr)
+	if err != nil {
+		log.Panicln(err)
+	}
+
+	// Turn the descriptor into a Go file object.
+	pipe := os.NewFile(uintptr(fd), "python-data")
+	if pipe == nil {
+		log.Panicln("could not access pipe")
+	}
+	defer pipe.Close()
+
+	// Send data to Python.
+	_, err = fmt.Fprintln(pipe, opponent_socket)
+	if err != nil {
+		log.Panicln(err)
+	}
+	// fmt.Println(os.Getenv("OPP_SOC"))
+	
+	// os.Setenv("OPP_SOC", opponent_socket)
 	fmt.Println("Chosen:", opponent)
 }
 
