@@ -321,7 +321,7 @@ func seekConnection() {
 			}
 		}
 	}(ctx)
-
+	piece_color := "b"
 	for opponent == nil {
 		channelInput()
 		select {
@@ -335,6 +335,8 @@ func seekConnection() {
 			case opponent = <-chosenOpponent:
 				if opponent == nil { // Opponent replied no (n-)
 					fmt.Println("Your connection request was rejected by", considering)
+				} else {
+					piece_color = "w"
 				}
 			case <-t.C:
 				fmt.Println("Time's up!")
@@ -347,27 +349,26 @@ func seekConnection() {
 	}
 
 	fdStr := os.Getenv("DATA_FD")
-	opponent_socket := fmt.Sprintf("%s:%d\n", opponent.ipAddr.IP.String(), opponent.ipAddr.Port)
+	opponentSocket := fmt.Sprintf("%s:%d", opponent.ipAddr.IP.String(), opponent.ipAddr.Port)
+
 	fd, err := strconv.Atoi(fdStr)
 	if err != nil {
 		log.Panicln(err)
 	}
 
-	// Turn the descriptor into a Go file object.
+	// pipe is the read file descriptor as a Go file object.
 	pipe := os.NewFile(uintptr(fd), "python-data")
 	if pipe == nil {
 		log.Panicln("could not access pipe")
 	}
 	defer pipe.Close()
 
-	// Send data to Python.
-	_, err = fmt.Fprintln(pipe, opponent_socket)
+	// Send data to game.py.
+	_, err = fmt.Fprint(pipe, opponentSocket + piece_color)
 	if err != nil {
 		log.Panicln(err)
 	}
-	// fmt.Println(os.Getenv("OPP_SOC"))
 	
-	// os.Setenv("OPP_SOC", opponent_socket)
 	fmt.Println("Chosen:", opponent)
 }
 
