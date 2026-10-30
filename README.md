@@ -30,17 +30,22 @@ python play.py
 python play.py load
 ```
 
-3. To use the timer:
+3. To play online:
+```bash
+python play.py --online
+```
+
+4. To use the timer:
 ```bash
 python play.py -t 30
 ```
 
-4. To disable pausing:
+5. To disable pausing:
 ```bash
 python play.py -np
 ```
 
-5. To see the help message:
+6. To see the help message:
 ```bash
 python play.py -h
 ```
@@ -66,9 +71,9 @@ python play.py -h
 - Game Saving
 - Game Loading
 - Chess Rules Validation
+- PvP
 
 ## Future Features
-- PvP
 - PvE
 - Tournaments
 - and many more
