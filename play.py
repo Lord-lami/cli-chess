@@ -99,13 +99,14 @@ if ARGS.command == "load":
         board = saved_game.get("board", board)
 
 if ARGS.online:
-    save_filename, \
-        remaining_time, \
-            current_player, \
-                board = \
+    # save_filename, \
+    #     remaining_time, \
+    #         current_player, \
+    #             board = \
                     game.online_game(turn_duration, pause, arbiter, \
                                         remaining_time, current_player, \
                                             board)
+                    sys.exit()
 else:
     save_filename, \
         remaining_time, \
