@@ -44,7 +44,8 @@ enforcement.add_argument(
 
 subparsers = parser.add_subparsers(dest="command")
 
-load_parser = subparsers.add_parser("load")
+load_parser = subparsers.add_parser("load",
+                                    help="Load the last saved game or a save file")
 # filename_parser = load_parser.add_subparsers(
 #     dest="filename", 
 #     description="Filename of the save file in saves folder to load (default: autosave).",
