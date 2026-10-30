@@ -19,6 +19,10 @@ const (
 // userName is the userName of this user.
 var userName string
 
+// ip is the ip address and port this user will
+// use to communicate with the opponent
+var ip string
+
 // ip2Idx maps IP address strings
 // to their index in [currentPlayers].
 var ip2Idx map[string]int = make(map[string]int)
@@ -111,6 +115,8 @@ func listenForAUnicastMessageAndReply(conn *net.UDPConn) {
 	// Recieved Reply (Yes/No) from a player that you chose
 	case "y-":
 		if isReplyFromChosenPlayer {
+			// Set ip
+			ip = message[2:]
 			// Choose player
 			chosenOpponent <- currentPlayers[chosenIndex]
 			log.Println("Playing with ", currentPlayers[chosenIndex].userName, " at", raddr)
@@ -125,7 +131,7 @@ func listenForAUnicastMessageAndReply(conn *net.UDPConn) {
 
 	// Connection Request from a player that chose you
 	case "i-":
-		playerName := message[2:]
+		playerName := currentPlayers[ip2Idx[raddr.String()]].userName
 		log.Println("Received Connection Request from", playerName, raddr)
 		fmt.Println("Accept Connection Request from", playerName, raddr, "?")
 		fmt.Print("Y/n: ")
@@ -136,8 +142,10 @@ func listenForAUnicastMessageAndReply(conn *net.UDPConn) {
 		// Inputted reply is sent on reply channel
 		case reply := <-replyChan:
 			if "y" == reply {
+				// Set ip
+				ip = message[2:]
 				// Reply: Tell the player you accept
-				_, err := conn.WriteToUDP([]byte("y-"), raddr)
+				_, err := conn.WriteToUDP([]byte("y-"+raddr.String()), raddr)
 				if err != nil {
 					log.Panicln(err)
 				}
@@ -261,7 +269,7 @@ func channelInput() {
 // initiateConnWith sends a connection request message to the
 // prospectiveOpponent
 func initiateConnWith(conn *net.UDPConn, prospectiveOpponent *user) {
-	_, err := conn.WriteToUDP([]byte("i-"+userName), prospectiveOpponent.ipAddr)
+	_, err := conn.WriteToUDP([]byte("i-"+prospectiveOpponent.ipAddr.String()), prospectiveOpponent.ipAddr)
 	if err != nil {
 		log.Panicln(err)
 	}
@@ -349,7 +357,11 @@ func seekConnection() {
 	}
 
 	fdStr := os.Getenv("DATA_FD")
-	opponentSocket := fmt.Sprintf("%s:%d", opponent.ipAddr.IP.String(), opponent.ipAddr.Port)
+	socket := fmt.Sprintf("%s:%d,%s",
+		opponent.ipAddr.IP.String(),
+		opponent.ipAddr.Port,
+		ip,
+	)
 
 	fd, err := strconv.Atoi(fdStr)
 	if err != nil {
@@ -364,11 +376,11 @@ func seekConnection() {
 	defer pipe.Close()
 
 	// Send data to game.py.
-	_, err = fmt.Fprint(pipe, opponentSocket + piece_color)
+	_, err = fmt.Fprint(pipe, socket+piece_color)
 	if err != nil {
 		log.Panicln(err)
 	}
-	
+
 	fmt.Println("Chosen:", opponent)
 }
 
