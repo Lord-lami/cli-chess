@@ -1,5 +1,5 @@
 import chessBoard, timer, possibleMoves
-import logging, copy, subprocess, os
+import logging, copy, subprocess, os, sys, socket, time
 
 main_board = dict()
 
@@ -275,7 +275,10 @@ def online_game(turn_duration: int,
     os.environ["DATA_FD"] = str(write_fd)
 
     try:
-        subprocess.run(["go", "run", "connect.go"], pass_fds=(write_fd,), check=True)
+        subprocess.run(["go", "run", "connect.go"], 
+                       pass_fds=(write_fd,), 
+                       check=True, 
+                       stderr=sys.stderr)
 
         # Python no longer needs its own copy of the write end.
         os.close(write_fd)
@@ -284,9 +287,9 @@ def online_game(turn_duration: int,
         # Read data from Go.
         with os.fdopen(read_fd, "r") as pipe:
             read_fd = -1
-            result = pipe.read()
+            data = pipe.read()
 
-        print("Received from Go:", result)
+        print("Received from Go:", data)
 
     finally:
         if write_fd != -1:
@@ -295,8 +298,33 @@ def online_game(turn_duration: int,
         if read_fd != -1:
             os.close(read_fd)
 
-    print("Opponent Socket:", result)
-    return
+    print("Opponent Socket:", data)
+
+    piece_color = data[-1]
+    socket_str = data[:-1]
+    oppAddr, myAddr = socket_str.rsplit(",", 1)
+    host, port = myAddr.rsplit(":", 1)
+    oppHost, oppPort = oppAddr.rsplit(":", 1)
+
+    white_soc = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    white_soc.bind((host, int(port)))
+
+    if piece_color == "w":
+        piece_color = "White"
+        time.sleep(1)
+        white_soc.connect((oppHost, int(oppPort)))
+        mySoc = white_soc
+        print(white_soc.getsockname(), "vs." ,oppAddr)
+        # Play your round
+    else:
+        piece_color = "Black"
+        white_soc.listen()
+        black_soc, raddr = white_soc.accept()
+        mySoc = black_soc
+        print(black_soc.getsockname(), "vs.", raddr)
+        # black_soc.close()
+        # Wait for opponent to play round and send their move
+    
     global main_board
     main_board = board
     computer_message = ""
@@ -317,10 +345,29 @@ def online_game(turn_duration: int,
             print("Computer:", computer_message)
             computer_message = ""
 
-        if turn_duration < 1:
-            command = input(current_player+"> ")
+        command = ""
+
+        if piece_color == current_player:
+            if turn_duration < 1:
+                command = input(current_player+"> ")
+            else:
+                command, remaining_time = timer.timer_timed_input(remaining_time, "-"+current_player+"> ")
         else:
-            command, remaining_time = timer.timer_timed_input(remaining_time, "-"+current_player+"> ")
+            if turn_duration < 1:
+                print(f"Waiting for {current_player}'s move...")
+                command = mySoc.recv(1024).decode(encoding="utf-8")
+                if not command:
+                    print("The connection has been closed")
+                    return
+            else:
+                print(f"Waiting for {current_player}'s move in {turn_duration} seconds")
+                data = mySoc.recv(1024).decode(encoding="utf-8")
+                if not data:
+                    print("The connection has been closed")
+                    return
+                command, remaining_time = data.rsplit("|", 1)
+                remaining_time = int(remaining_time)
+                
         
         if turn_duration > 0 and remaining_time == 0:
             computer_message = f"Turn Expired"
@@ -441,6 +488,9 @@ def online_game(turn_duration: int,
                 save_filename = "autosave"
                 if len(prompt) > 1:
                     save_filename = prompt[1]
+                if piece_color == "Black":
+                    black_soc.close()
+                white_soc.close()
                 return save_filename, remaining_time, current_player, main_board
 
             case _:
@@ -449,6 +499,12 @@ def online_game(turn_duration: int,
                 computer_message += "\n" + ADVICE
                 continue
 
+        # Only send your own moves
+        if current_player == piece_color:
+            packet = command
+            if turn_duration > 1:
+                packet += "|" + str(remaining_time)
+            mySoc.send(packet.encode("utf-8"))
         player_message = current_player + ": " + player_message if player_message else ""
         current_player, next_player = next_player, current_player
         remaining_time = turn_duration
