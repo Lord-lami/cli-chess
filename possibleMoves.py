@@ -58,57 +58,57 @@ FILES = "abcdefgh"
 RANKS = "12345678"
 
 
-def legal_moves(board: dict[str, str], position: str) -> set[str]:
+def legal_moves(board: dict[str, str], from_pos: str) -> set[str]:
     """
-    Return a set of positions to which the piece at `position`
+    Return a set of positions to which the piece at `from_pos`
     can legally move.
 
     board: dict[str, str]
         Maps positions such as "e4" to pieces such as "wP".
 
-    position: str
+    from_pos: str
         Position occupied by the piece to move.
 
     Returns:
         set[str]
     """
 
-    color = board[position][0]
-    piece = board[position][1]
+    color = board[from_pos][0]
+    piece = board[from_pos][1]
 
     moves = set()
 
     if piece == 'P':
-        moves |= pawn_moves(board, position, color)
+        moves |= pawn_moves(board, from_pos, color)
     elif piece == 'N':
-        moves |= knight_moves(board, position, color)
+        moves |= knight_moves(board, from_pos, color)
     elif piece == 'B':
         moves |= sliding_moves(
-            board, position, color,
+            board, from_pos, color,
             [(1, 1), (1, -1), (-1, 1), (-1, -1)]
         )
     elif piece == 'R':
         moves |= sliding_moves(
-            board, position, color,
+            board, from_pos, color,
             [(1, 0), (-1, 0), (0, 1), (0, -1)]
         )
     elif piece == 'Q':
         moves |= sliding_moves(
-            board, position, color,
+            board, from_pos, color,
             [
                 (1, 1), (1, -1), (-1, 1), (-1, -1),
                 (1, 0), (-1, 0), (0, 1), (0, -1)
             ]
         )
     elif piece == 'K':
-        moves |= king_moves(board, position, color)
+        moves |= king_moves(board, from_pos, color)
 
     # A move is only legal if it doesn't leave our king in check.
     legal = set()
 
     for destination in moves:
         new_board = board.copy()
-        del new_board[position]
+        del new_board[from_pos]
         new_board[destination] = color + piece
 
         if not in_check(new_board, color):
