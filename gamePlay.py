@@ -1,5 +1,5 @@
-import chessBoard, timer, possibleMoves
-import logging, copy, subprocess, os, sys, socket, time
+import chessBoard, possibleMoves
+import logging
 
 main_board = dict()
 
