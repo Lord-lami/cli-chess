@@ -1,17 +1,4 @@
-# def possible_moves(board: dict[str]str) -> dict[str]list[str]:
-#     pass
-
-def parse_algebraic_move(move: str, board: dict[str, str]) -> tuple[str]:
-    movelen = len(move)
-    if movelen == 2:
-        file = move[0]
-
-
-# VALID_PIECES = {
-#     'wP', 'wR', 'wN', 'wB', 'wQ', 'wK',
-#     'bP', 'bR', 'bN', 'bB', 'bQ', 'bK'
-# }
-
+import chessBoard
 
 def get_move_positions(color: str, move: str, board: dict[str, str]) -> tuple[str, str]:
     """
@@ -31,6 +18,9 @@ def get_move_positions(color: str, move: str, board: dict[str, str]) -> tuple[st
         -> ('b1', 'f3')
     """
     to_pos = move[-2:]  # e.g. 'f3'
+    if not chessBoard.is_valid_position(to_pos):
+        return None, None
+    
     piece_letter = move[0]
 
     # Pawn move: e4, exd5, etc.
@@ -38,6 +28,9 @@ def get_move_positions(color: str, move: str, board: dict[str, str]) -> tuple[st
         piece_type = 'P'
     else:
         piece_type = piece_letter
+
+    if piece_type not in {"Q", "K", "B", "N", "R", "P"}:
+        return None, None
 
     # Find pieces of the appropriate type.
     candidates = []
@@ -52,8 +45,8 @@ def get_move_positions(color: str, move: str, board: dict[str, str]) -> tuple[st
 
     if len(candidates) == 1:
         return candidates[0], to_pos
-
-    raise ValueError(f"Could not uniquely determine source square for {move}")
+    else:
+        return None, None
 
 
 # VALID_PIECES = {

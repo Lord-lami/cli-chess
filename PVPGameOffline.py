@@ -151,10 +151,15 @@ def play(turn_duration: int, noPause: bool|None, arbiter: bool, remaining_time: 
                 return save_filename, remaining_time, current_player, gamePlay.main_board
 
             case _:
-                computer_message = f"Invalid command - {prompt[0]}"
-                logging.error(computer_message)
-                computer_message += "\n" + gamePlay.ADVICE
-                continue
+                from_pos, to_pos = possibleMoves.get_move_positions(current_player[0].lower(), command, gamePlay.main_board)
+                if from_pos and to_pos:
+                    gamePlay.main_board[to_pos] = gamePlay.main_board[from_pos]
+                    del gamePlay.main_board[from_pos]
+                else:
+                    computer_message = f"Invalid command - {prompt[0]}"
+                    logging.error(computer_message)
+                    computer_message += "\n" + gamePlay.ADVICE
+                    continue
 
         player_message = current_player + ": " + player_message if player_message else ""
         current_player, next_player = next_player, current_player
