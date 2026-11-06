@@ -13,7 +13,7 @@ def parse_algebraic_move(move: str, board: dict[str, str]) -> tuple[str]:
 # }
 
 
-def get_move_positions(move, board):
+def get_move_positions(color: str, move: str, board: dict[str, str]) -> tuple[str, str]:
     """
     Return (from_position, to_position) for an algebraic chess move.
 
@@ -43,10 +43,11 @@ def get_move_positions(move, board):
     candidates = []
 
     for position, piece in board.items():
-        if piece[1] == piece_type:
+        if piece[1] == piece_type and piece[0] == color:
             candidates.append(position)
 
-    # TODO: determine which candidate can legally reach to_pos
+    # Determine which candidate can legally reach to_pos
+    candidates = [position for position in candidates if to_pos in legal_moves(board, position)]
     
 
     if len(candidates) == 1:
