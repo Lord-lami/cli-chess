@@ -72,7 +72,7 @@ def play(turn_duration: int,
     if current_player == "Black":
         next_player = "White"
     
-    print(gamePlay.instructions)
+    print(gamePlay.INSTRUCTIONS)
     chessBoard.print_chess_board(gamePlay.main_board)
 
     while True:
@@ -219,7 +219,7 @@ def play(turn_duration: int,
                     continue
 
             case "help":
-                print(gamePlay.instructions)
+                print(gamePlay.INSTRUCTIONS)
                 continue
             
             case "quit":
