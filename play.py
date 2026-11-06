@@ -1,4 +1,4 @@
-import game, chessBoard
+import gamePlay, chessBoard
 import logging, argparse, shelve, sys
 from pathlib import Path
 
@@ -104,7 +104,7 @@ if ARGS.online:
     #     remaining_time, \
     #         current_player, \
     #             board = \
-                    game.online_game(turn_duration, pause, arbiter, \
+                    gamePlay.online_game(turn_duration, pause, arbiter, \
                                         remaining_time, current_player, \
                                             board)
                     sys.exit()
@@ -113,7 +113,7 @@ else:
         remaining_time, \
             current_player, \
                 board = \
-                    game.offline_game(turn_duration, pause, arbiter, \
+                    gamePlay.offline_game(turn_duration, pause, arbiter, \
                                         remaining_time, current_player, \
                                             board)
 if ARGS.command == "load" and save_filename == "autosave":
