@@ -1,4 +1,4 @@
-import gamePlay, chessBoard
+import chessBoard, PVPGameOffline
 import logging, argparse, shelve, sys
 from pathlib import Path
 
@@ -84,6 +84,7 @@ if ARGS.no_pause:
 
 filename = "autosave"
 
+# Loading save data
 if ARGS.command == "load":
     if ARGS.filename:
         filename = ARGS.filename
@@ -99,23 +100,27 @@ if ARGS.command == "load":
         current_player = saved_game.get("current_player", current_player)
         board = saved_game.get("board", board)
 
+# Online Game
 if ARGS.online:
     # save_filename, \
     #     remaining_time, \
     #         current_player, \
     #             board = \
-                    gamePlay.online_game(turn_duration, pause, arbiter, \
-                                        remaining_time, current_player, \
-                                            board)
+                    # gamePlay.online_game(turn_duration, pause, arbiter, \
+                    #                     remaining_time, current_player, \
+                    #                         board)
                     sys.exit()
+# Offline Game
 else:
     save_filename, \
         remaining_time, \
             current_player, \
                 board = \
-                    gamePlay.offline_game(turn_duration, pause, arbiter, \
+                    PVPGameOffline.play(turn_duration, pause, arbiter, \
                                         remaining_time, current_player, \
                                             board)
+
+# Saving game
 if ARGS.command == "load" and save_filename == "autosave":
     save_filename = filename
 
