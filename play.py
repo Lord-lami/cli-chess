@@ -1,4 +1,4 @@
-import chessBoard, PVPGameOffline
+import chessBoard, PVPGameOffline, PVPGameOnline
 import logging, argparse, shelve, sys
 from pathlib import Path
 
@@ -106,9 +106,9 @@ if ARGS.online:
     #     remaining_time, \
     #         current_player, \
     #             board = \
-                    # gamePlay.online_game(turn_duration, pause, arbiter, \
-                    #                     remaining_time, current_player, \
-                    #                         board)
+                    PVPGameOnline.play(turn_duration, pause, arbiter, \
+                                        remaining_time, current_player, \
+                                            board)
                     sys.exit()
 # Offline Game
 else:
