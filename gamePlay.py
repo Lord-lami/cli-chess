@@ -94,6 +94,7 @@ Commands:
   move e2 e4 [message] - Moves the piece at e2 to e4. You can optionally add a player message.
   remove e2 - Removes the piece at e2.
   set e2 wP - Sets square e2 to a white pawn.
+  Algebraic moves (e3, Na3,...) work when they are correct.
   reset - Resets pieces back to their starting squares.
   clear - Clears the entire board.
   fill wP - Fills entire board with white pawns.
