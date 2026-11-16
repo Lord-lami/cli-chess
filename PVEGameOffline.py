@@ -2,7 +2,7 @@
 a move from among the current legal possible moves"""
 
 import chessBoard, timer, gamePlay, possibleMoves
-import logging, copy, random
+import logging, copy, random, time
 
 def randomModel(color: str, board: dict[str, str]) -> str:
     availablePositions = [position for position in board 
@@ -60,6 +60,9 @@ def play(turn_duration: int,
                 command, remaining_time = timer.timer_timed_input(remaining_time, "-"+current_player+"> ")
         else:
             command = model(current_player[0].lower(), gamePlay.main_board)
+            time.sleep(2)
+            print(f"{current_player}> {command}")
+            time.sleep(2)
         
         if turn_duration > 0 and remaining_time == 0:
             computer_message = f"Turn Expired"
