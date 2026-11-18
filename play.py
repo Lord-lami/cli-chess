@@ -1,4 +1,4 @@
-import chessBoard, PVPGameOffline, PVPGameOnline
+import chessBoard, PVPGameOffline, PVPGameOnline, PVEGameOffline
 import logging, argparse, shelve, sys
 from pathlib import Path
 
@@ -25,6 +25,12 @@ parser.add_argument(
     "--online",
     action="store_true",
     help="Starts an online game"
+)
+
+parser.add_argument(
+     "--rando",
+     action="store_true",
+     help="Starts a game agains the rando model"
 )
 
 enforcement = parser.add_mutually_exclusive_group()
@@ -111,6 +117,14 @@ if ARGS.online:
                                             board)
                     sys.exit()
 # Offline Game
+elif ARGS.rando:
+     save_filename, \
+             remaining_time, \
+                 current_player, \
+                     board = \
+                         PVEGameOffline.play(turn_duration, pause, arbiter, \
+                                             remaining_time, current_player, \
+                                                 board, "w", PVEGameOffline.randomModel)
 else:
     save_filename, \
         remaining_time, \

@@ -1,6 +1,6 @@
 import chessBoard
 
-def get_move_positions(color: str, move: str, board: dict[str, str]) -> tuple[str, str]:
+def get_move_positions(color: str, alg_move: str, board: dict[str, str]) -> tuple[str, str]:
     """
     Return (from_position, to_position) for an algebraic chess move.
 
@@ -17,11 +17,11 @@ def get_move_positions(color: str, move: str, board: dict[str, str]) -> tuple[st
         get_move_positions('Nf3', board)
         -> ('b1', 'f3')
     """
-    to_pos = move[-2:]  # e.g. 'f3'
+    to_pos = alg_move[-2:]  # e.g. 'f3'
     if not chessBoard.is_valid_position(to_pos):
         return None, None
     
-    piece_letter = move[0]
+    piece_letter = alg_move[0]
 
     # Pawn move: e4, exd5, etc.
     if piece_letter in 'abcdefgh':
@@ -56,6 +56,28 @@ def get_move_positions(color: str, move: str, board: dict[str, str]) -> tuple[st
 
 FILES = "abcdefgh"
 RANKS = "12345678"
+
+def is_checkmate(board, color):
+    if not in_check(board, color):
+        return False
+
+    for pos, piece in board.items():
+        if piece[0] == color:
+            if legal_moves(board, pos):
+                return False
+
+    return True
+
+def is_stalemate(board, color):
+    if in_check(board, color):
+        return False
+
+    for pos, piece in board.items():
+        if piece[0] == color:
+            if legal_moves(board, pos):
+                return False
+
+    return True
 
 
 def legal_moves(board: dict[str, str], from_pos: str) -> set[str]:

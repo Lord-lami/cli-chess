@@ -24,6 +24,10 @@ def play(turn_duration: int, noPause: bool|None, arbiter: bool, remaining_time: 
             print("Computer:", computer_message)
             computer_message = ""
 
+        if possibleMoves.is_checkmate(gamePlay.main_board, current_player[0].lower()):
+            print("Computer: You Lose!")
+            return "autosave", remaining_time, current_player, gamePlay.main_board
+
         if turn_duration < 1:
             command = input(current_player+"> ")
         else:
@@ -161,6 +165,10 @@ def play(turn_duration: int, noPause: bool|None, arbiter: bool, remaining_time: 
                     computer_message += "\n" + gamePlay.ADVICE
                     continue
 
+        if possibleMoves.in_check(gamePlay.main_board, next_player[0].lower()):
+            player_message += "Check"
+        if possibleMoves.is_checkmate(gamePlay.main_board, next_player[0].lower()):
+            player_message += "mate"
         player_message = current_player + ": " + player_message if player_message else ""
         current_player, next_player = next_player, current_player
         remaining_time = turn_duration

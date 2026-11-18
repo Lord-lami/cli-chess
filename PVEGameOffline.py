@@ -27,11 +27,11 @@ def randomModel(color: str, board: dict[str, str]) -> str:
 def play(turn_duration: int, 
          noPause: bool|None, 
          arbiter: bool, 
-         playerColor: str,
-         model: function,
          remaining_time: int, 
          current_player: str, 
-         board: dict[str, str]) -> tuple[str, int, str, dict]:
+         board: dict[str, str],
+         playerColor: str,
+         model: function) -> tuple[str, int, str, dict]:
     """An offline game of CLI Chess"""
     gamePlay.main_board = board
     computer_message = ""
