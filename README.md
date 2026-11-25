@@ -81,5 +81,6 @@ python play.py -h
 - PvE
 
 ## Future Features
+- Enpassant and Castling Moves
 - Tournaments
 - and many more
