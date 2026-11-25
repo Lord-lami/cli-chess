@@ -76,6 +76,7 @@ python play.py -h
 - Game Saving
 - Game Loading
 - Chess Rules Validation
+- Algebraic Notation Moves
 - PvP
 - PvE
 
