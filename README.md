@@ -35,17 +35,22 @@ python play.py load
 python play.py --online
 ```
 
-4. To use the timer:
+4. To play against against the rando model:
+```bash
+python play.py --rando
+```
+
+5. To use the timer:
 ```bash
 python play.py -t 30
 ```
 
-5. To disable pausing:
+6. To disable pausing:
 ```bash
 python play.py -np
 ```
 
-6. To see the help message:
+7. To see the help message:
 ```bash
 python play.py -h
 ```
@@ -72,8 +77,8 @@ python play.py -h
 - Game Loading
 - Chess Rules Validation
 - PvP
+- PvE
 
 ## Future Features
-- PvE
 - Tournaments
 - and many more

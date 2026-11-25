@@ -30,7 +30,7 @@ parser.add_argument(
 parser.add_argument(
      "--rando",
      action="store_true",
-     help="Starts a game agains the rando model"
+     help="Starts a game against the rando model"
 )
 
 enforcement = parser.add_mutually_exclusive_group()
